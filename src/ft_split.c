@@ -12,105 +12,88 @@
 
 #include "SuperLibft.h"
 
-static char	**ft_malloctab(char const *str, char c)
+static size_t	count_words(char const *s, char c)
 {
-	int		i;
-	int		mot;
-	char	**tab;
+	size_t	words;
+	size_t	i;
 
+	words = 0;
 	i = 0;
-	mot = 0;
-	while (str[i] != '\0')
+	while (s[i])
 	{
-		if (str[i] == c)
-			i++;
-		else
-		{
-			mot ++;
-			while (str[i] != c && str[i] != '\0')
-				i++;
-		}	
+		if (s[i] != c && (s[i + 1] == c || s[i + 1] == '\0'))
+			words++;
+		i++;
 	}
-	tab = malloc(sizeof(char *) * (mot + 1));
-	tab[mot] = 0;
-	return (tab);
+	return (words);
 }
 
-static char	**ft_mallocmot(char const *str, char **tab, char c)
+static void	fill_tab(char *new, char const *s, char c)
 {
-	int	i;
-	int	j;
-	int	mot;
+	size_t	i;
 
 	i = 0;
-	j = 0;
-	mot = -1;
-	while (str[i] != '\0')
+	while (s[i] && s[i] != c)
 	{
-		if (str[i] != c)
+		new[i] = s[i];
+		i++;
+	}
+	new[i] = '\0';
+}
+
+void	free_tabstr(char **tab)
+{
+	size_t	i;
+
+	if (!tab)
+		return ;
+	i = 0;
+	while (tab[i])
+	{
+		free(tab[i]);
+		i++;
+	}
+	free(tab);
+}
+
+static int	set_mem(char **tab, char const *s, char c)
+{
+	size_t	count;
+	size_t	index;
+	size_t	i;
+
+	index = 0;
+	i = 0;
+	while (s[index])
+	{
+		count = 0;
+		while (s[index + count] && s[index + count] != c)
+			count++;
+		if (count > 0)
 		{
-			j = i;
-			mot++;
-			while (str[i] != c && str[i] != '\0')
-				i++;
-			tab[mot] = malloc(sizeof(char) * (i - j + 1));
-			tab[mot][i - j] = '\0';
+			tab[i] = malloc(sizeof(char) * (count + 1));
+			if (!tab[i])
+				return (free_tabstr(tab), 0);
+			fill_tab(tab[i], (s + index), c);
+			i++;
+			index = index + count;
 		}
 		else
-			i++;
+			index++;
 	}
-	return (tab);
+	tab[i] = 0;
+	return (1);
 }
 
-static char	**ft_str_to_tab(char const *str, char **tab, char c)
+char	**ft_split(char const *s, char c)
 {
-	int	i;
-	int	j;
-	int	mot;
-
-	i = 0;
-	j = 0;
-	mot = -1;
-	while (str[i] != '\0')
-	{
-		if (str[i] != c)
-		{
-			j = 0;
-			mot++;
-			while (str[i] != c && str[i] != '\0')
-			{
-				tab[mot][j] = str[i];
-				i++;
-				j++;
-			}
-		}
-		else
-			i++;
-	}
-	return (tab);
-}
-
-char	**ft_split(char const *str, char c)
-{
+	size_t	words;
 	char	**tab;
 
-	tab = ft_malloctab(str, c);
-	tab = ft_mallocmot(str, tab, c);
-	tab = ft_str_to_tab(str, tab, c);
+	words = count_words(s, c);
+	tab = malloc(sizeof(char *) * (words + 1));
+	if (!tab)
+		return (NULL);
+	set_mem(tab, s, c);
 	return (tab);
 }
-
-// int main(void)
-// {
-// 	int i;
-// 	i = 0; 
-//     char **tab = ft_split("Tripouille", ' ');
-// 	while (i < 2)
-// 	{
-// 	printf("|%s|\n" , tab[i]);
-// 	i++;
-// 	}
-// 	free(tab[0]);
-// 	free(tab[1]);
-// 	free(tab);
-// }
